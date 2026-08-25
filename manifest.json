@@ -3,8 +3,8 @@
   "short_name": "Zwei",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4efe6",
-  "theme_color": "#1c1916",
+  "background_color": "#0f0e0c",
+  "theme_color": "#0f0e0c",
   "lang": "de-CH",
   "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
 }

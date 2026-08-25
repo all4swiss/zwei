@@ -4,56 +4,91 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#1c1916">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f0e0c">
   <title>Zwei</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@380;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <h1>Zwei</h1>
-    <div class="week" id="week">0 / 2 diese Woche</div>
+  <div class="glow" aria-hidden="true"></div>
+  <header class="top">
+    <div>
+      <p class="kicker" id="kicker">Einheit A · Chris</p>
+      <h1>Zwei</h1>
+    </div>
+    <div class="meta">
+      <span id="week">0 / 2</span>
+      <button type="button" class="chip" id="bpChip">BD</button>
+    </div>
   </header>
-  <div id="bpBanner" class="banner" hidden>
-    Blutdruck heute noch nicht gemessen.
-    <button class="btn small ghost" type="button" id="bpBannerBtn">Jetzt eintragen</button>
-  </div>
+
   <section id="panel-train" class="panel on">
-    <p class="note">Einheit A · Ganzkörper Schulter · Pause 1 Minute. Ist zählt, nicht das PDF.</p>
-    <button class="btn" id="quick" type="button">Heute zählt</button>
-    <div id="exercises"></div>
-    <button class="btn" id="finish" type="button">Einheit speichern</button>
-    <h3>Letzte Einheiten</h3>
+    <div class="rail" id="rail" aria-label="Übungen"></div>
+
+    <article class="now" id="now">
+      <p class="now-k" id="nowK">Übung 1 von 12</p>
+      <h2 id="nowName"></h2>
+      <p class="cue" id="nowCue"></p>
+      <div id="nowSets"></div>
+      <label class="note-lab" for="nowNote">So gemacht</label>
+      <input id="nowNote" class="note-in" placeholder="z.B. Beinpresse 90 statt 80, Knie ok">
+      <div class="now-nav">
+        <button type="button" class="ghost" id="prev">Zurück</button>
+        <button type="button" class="ghost" id="skip">Überspringen</button>
+        <button type="button" class="solid" id="next">Weiter</button>
+      </div>
+    </article>
+
+    <div class="actions">
+      <button type="button" class="ghost wide" id="quick">Heute zählt</button>
+      <button type="button" class="solid wide" id="finish">Einheit speichern</button>
+    </div>
     <div class="hist" id="trainHist"></div>
   </section>
+
   <section id="panel-bp" class="panel">
-    <div class="card">
-      <label class="f">Zeit</label>
-      <input class="f" id="bpWhen" type="datetime-local">
-      <div class="row">
-        <div><label class="f">Systolisch</label><input class="f" id="bpSys" inputmode="numeric" placeholder="z.B. 128"></div>
-        <div><label class="f">Diastolisch</label><input class="f" id="bpDia" inputmode="numeric" placeholder="z.B. 82"></div>
+    <p class="lead">Nur ein Log. Keine Bewertung.</p>
+    <div class="cuff">
+      <div class="pair">
+        <label for="bpSys">Systolisch</label>
+        <input id="bpSys" inputmode="numeric" placeholder="128">
       </div>
-      <label class="f">Puls</label>
-      <input class="f" id="bpPulse" inputmode="numeric" placeholder="optional">
-      <label class="f">Notiz</label>
-      <input class="f" id="bpNote" placeholder="optional">
-      <p class="note">Nur ein Log. Keine Bewertung, kein Arzt.</p>
-      <button class="btn" id="bpSave" type="button">Messung speichern</button>
+      <span class="slash">/</span>
+      <div class="pair">
+        <label for="bpDia">Diastolisch</label>
+        <input id="bpDia" inputmode="numeric" placeholder="82">
+      </div>
     </div>
-    <h3>Verlauf</h3>
+    <div class="row">
+      <div class="pair sm">
+        <label for="bpPulse">Puls</label>
+        <input id="bpPulse" inputmode="numeric" placeholder="optional">
+      </div>
+      <div class="pair sm">
+        <label for="bpWhen">Zeit</label>
+        <input id="bpWhen" type="datetime-local">
+      </div>
+    </div>
+    <input id="bpNote" class="note-in" placeholder="Notiz, optional">
+    <button type="button" class="solid wide" id="bpSave">Messung speichern</button>
     <div class="hist" id="bpHist"></div>
-    <button class="btn ghost" id="export" type="button">JSON exportieren</button>
+    <button type="button" class="ghost wide" id="export">JSON exportieren</button>
   </section>
+
   <nav>
-    <button type="button" class="on" data-tab="train">Training</button>
+    <button type="button" class="on" data-tab="train">Jetzt</button>
     <button type="button" data-tab="bp">Blutdruck</button>
   </nav>
+
   <div class="timer" id="timer">
+    <p class="now-k" id="timerMsg">Pause</p>
     <div class="n" id="timerN">1:00</div>
-    <p id="timerMsg">Pause</p>
-    <button class="btn ghost" type="button" id="timerSkip">Überspringen</button>
+    <button type="button" class="ghost" id="timerSkip">Weiter</button>
   </div>
   <script src="app.js"></script>
 </body>

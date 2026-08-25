@@ -3,7 +3,7 @@ const EX = [
   { id: 2, name: "Beinpresse horizontal", cue: "mehr als 45°", sets: [{ reps: 10, kg: 80 }, { reps: 10, kg: 80 }] },
   { id: 3, name: "Latzug", cue: "mittlerer schwarzer Griff", sets: [{ reps: 10, kg: 45 }, { reps: 10, kg: 45 }] },
   { id: 4, name: "Rudern, sitzend", cue: "Griff schmal, aufrecht, Schulterblätter", sets: [{ reps: 10, kg: 50 }, { reps: 10, kg: 50 }] },
-  { id: 5, name: "Überzüge Maschine", cue: "Sitzhöhe 7. PDF stand 100 Wdh — Ist zählt, Soll hier 10.", sets: [{ reps: 10, kg: 45 }, { reps: 10, kg: 45 }] },
+  { id: 5, name: "Überzüge Maschine", cue: "Sitzhöhe 7. Ist zählt, Soll 10.", sets: [{ reps: 10, kg: 45 }, { reps: 10, kg: 45 }] },
   { id: 6, name: "Außenrotation Kabelzug", cue: "", sets: [{ reps: 10, kg: 5 }] },
   { id: 7, name: "Langlauf", cue: "", sets: [{ reps: 10, kg: 10 }] },
   { id: 8, name: "Shrugs Kurzhantel", cue: "kreisen 10 zurück, 5 vor, 10 zurück", sets: [{ reps: 25, kg: 3 }] },
@@ -13,7 +13,7 @@ const EX = [
   { id: 12, name: "Brust Stretch stehend", cue: "kleiner – grosser Adler", sets: [{ reps: 7 }] }
 ];
 
-const K = { sessions: "zwei-sessions", bp: "zwei-bp" };
+const K = { sessions: "zwei-sessions", bp: "zwei-bp", notes: "zwei-notes" };
 const $ = (id) => document.getElementById(id);
 function load(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } }
 function save(key, v) { localStorage.setItem(key, JSON.stringify(v)); }
@@ -29,78 +29,82 @@ function weekKey(d) {
   return dt.toISOString().slice(0, 10);
 }
 
-function renderExercises() {
-  const root = $("exercises");
-  root.innerHTML = EX.map((e) => {
-    const sets = e.sets.map((s, i) => {
-      const kg = s.kg != null ? `<input data-e="${e.id}" data-s="${i}" data-f="kg" inputmode="decimal" value="${s.kg}">` : `<span></span>`;
-      return `<div class="set">
-        <input class="check" type="checkbox" data-e="${e.id}" data-s="${i}" data-f="done">
-        <input data-e="${e.id}" data-s="${i}" data-f="reps" inputmode="numeric" value="${s.reps}">
-        ${kg}
-        <button class="btn small ghost" type="button" data-rest="${e.id}-${i}">Pause</button>
-      </div>`;
-    }).join("");
-    return `<article class="card ex" data-ex="${e.id}">
-      <h2>${e.id}. ${e.name}</h2>
-      ${e.cue ? `<p class="cue">${e.cue}</p>` : ""}
-      <div class="set" style="grid-template-columns:28px 1fr 1fr auto;font-size:12px;color:var(--muted)">
-        <span></span><span>Wdh</span><span>${e.sets[0].kg != null ? "kg" : ""}</span><span></span>
-      </div>
-      ${sets}
-    </article>`;
+let idx = 0;
+const live = EX.map((e) => ({
+  ...e,
+  sets: e.sets.map((s) => ({ ...s, done: false })),
+  note: ""
+}));
+
+function renderRail() {
+  $("rail").innerHTML = live.map((e, i) => {
+    const did = e.sets.some((s) => s.done);
+    const cls = i === idx ? "dot on" : did ? "dot did" : "dot";
+    return `<button type="button" class="${cls}" data-i="${i}">${e.id}</button>`;
   }).join("");
 }
 
+function renderNow() {
+  const e = live[idx];
+  $("nowK").textContent = `Übung ${idx + 1} von ${live.length}`;
+  $("nowName").textContent = e.name;
+  $("nowCue").textContent = e.cue || "Wie es sich anfühlt, zählt.";
+  $("nowNote").value = e.note;
+  const hasKg = e.sets.some((s) => s.kg != null);
+  $("nowSets").innerHTML = e.sets.map((s, i) => {
+    const kg = hasKg
+      ? `<div><label>kg</label><input data-s="${i}" data-f="kg" inputmode="decimal" value="${s.kg ?? ""}"></div>`
+      : "";
+    return `<div class="set ${hasKg ? "" : "nkg"}>
+      <div><label>Wdh</label><input data-s="${i}" data-f="reps" inputmode="numeric" value="${s.reps}"></div>
+      ${kg}
+      <button type="button" class="done ${s.done ? "on" : ""}" data-done="${i}">${s.done ? "ok" : "satz"}</button>
+    </div>`;
+  }).join("");
+  renderRail();
+}
+
 function collectSession() {
-  return EX.map((e) => ({
+  return live.map((e) => ({
     id: e.id,
     name: e.name,
-    sets: e.sets.map((s, i) => {
-      const q = (f) => document.querySelector(`[data-e="${e.id}"][data-s="${i}"][data-f="${f}"]`);
-      const done = q("done")?.checked || false;
-      const reps = Number(q("reps")?.value || s.reps);
-      const kgEl = q("kg");
-      return { done, reps, kg: kgEl ? Number(kgEl.value) : null };
-    })
+    note: e.note,
+    sets: e.sets.map((s) => ({ done: !!s.done, reps: Number(s.reps), kg: s.kg == null || s.kg === "" ? null : Number(s.kg) }))
   }));
 }
 
 function renderWeek() {
-  const sessions = load(K.sessions);
-  const wk = weekKey(todayISO());
-  const n = sessions.filter((s) => weekKey(s.date) === wk).length;
-  $("week").textContent = `${n} / 2 diese Woche`;
+  const n = load(K.sessions).filter((s) => weekKey(s.date) === weekKey(todayISO())).length;
+  $("week").textContent = `${n} / 2`;
 }
-
 function renderTrainHist() {
-  const sessions = load(K.sessions).slice().reverse().slice(0, 8);
+  const sessions = load(K.sessions).slice().reverse().slice(0, 6);
   $("trainHist").innerHTML = sessions.length
     ? sessions.map((s) => {
-        const done = s.quick ? "Heute zählt" : s.exercises.filter((e) => e.sets.some((x) => x.done)).length + " Übungen";
-        return `<div>${s.date} · ${done}</div>`;
+        const done = s.quick ? "Heute zählt" : (s.exercises || []).filter((e) => (e.sets || []).some((x) => x.done)).length + " Übungen";
+        return `<div>${s.date} · ${done}${s.note ? " · " + s.note : ""}</div>`;
       }).join("")
     : "<div>Noch keine Einheit.</div>";
 }
-
 function bpToday() {
-  return load(K.bp).some((r) => r.when.slice(0, 10) === todayISO());
+  return load(K.bp).some((r) => String(r.when).slice(0, 10) === todayISO());
 }
-function renderBpBanner() {
-  $("bpBanner").hidden = bpToday();
+function renderBpChip() {
+  const chip = $("bpChip");
+  chip.textContent = bpToday() ? "BD ok" : "BD";
+  chip.classList.toggle("warn", !bpToday());
 }
 function renderBpHist() {
   const rows = load(K.bp).slice().reverse();
   $("bpHist").innerHTML = rows.length
     ? rows.map((r) => {
-        const t = r.when.replace("T", " ").slice(0, 16);
-        const p = r.pulse ? ` · Puls ${r.pulse}` : "";
+        const t = String(r.when).replace("T", " ").slice(0, 16);
+        const p = r.pulse ? ` · ${r.pulse}` : "";
         const n = r.note ? ` · ${r.note}` : "";
         return `<div>${t} · ${r.sys} / ${r.dia}${p}${n}</div>`;
       }).join("")
     : "<div>Noch keine Messung.</div>";
 }
-
 function tab(name) {
   document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("on", p.id === "panel-" + name));
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
@@ -110,21 +114,16 @@ let timerId = null;
 function startRest() {
   let left = 60;
   const box = $("timer");
-  const n = $("timerN");
-  const msg = $("timerMsg");
   box.classList.add("on");
   box.classList.remove("done");
-  msg.textContent = "Pause";
+  $("timerMsg").textContent = "Pause";
   const tick = () => {
-    const m = Math.floor(left / 60);
-    const s = String(left % 60).padStart(2, "0");
-    n.textContent = `${m}:${s}`;
+    $("timerN").textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
     if (left <= 0) {
       clearInterval(timerId);
       box.classList.add("done");
-      msg.textContent = "Pause fertig";
-      n.textContent = "0:00";
-      try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (_) {}
+      $("timerMsg").textContent = "Weiter, wenn du willst";
+      try { navigator.vibrate && navigator.vibrate([180, 60, 180]); } catch (_) {}
       return;
     }
     left -= 1;
@@ -147,23 +146,53 @@ function addSession(entry) {
 }
 
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => tab(b.dataset.tab)));
-$("bpBannerBtn").addEventListener("click", () => tab("bp"));
+$("bpChip").addEventListener("click", () => tab("bp"));
 $("timerSkip").addEventListener("click", stopRest);
-
-$("exercises").addEventListener("click", (ev) => {
-  const btn = ev.target.closest("[data-rest]");
-  if (btn) startRest();
+$("rail").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-i]");
+  if (!b) return;
+  live[idx].note = $("nowNote").value;
+  idx = Number(b.dataset.i);
+  renderNow();
 });
-$("exercises").addEventListener("change", (ev) => {
-  if (ev.target.dataset.f === "done" && ev.target.checked) startRest();
+$("prev").addEventListener("click", () => {
+  live[idx].note = $("nowNote").value;
+  idx = (idx + live.length - 1) % live.length;
+  renderNow();
+});
+$("next").addEventListener("click", () => {
+  live[idx].note = $("nowNote").value;
+  idx = (idx + 1) % live.length;
+  renderNow();
+});
+$("skip").addEventListener("click", () => {
+  live[idx].note = $("nowNote").value || "übersprungen";
+  idx = Math.min(idx + 1, live.length - 1);
+  renderNow();
+});
+$("nowNote").addEventListener("input", () => { live[idx].note = $("nowNote").value; });
+$("nowSets").addEventListener("input", (ev) => {
+  const f = ev.target.dataset.f;
+  const i = Number(ev.target.dataset.s);
+  if (f === "reps") live[idx].sets[i].reps = ev.target.value;
+  if (f === "kg") live[idx].sets[i].kg = ev.target.value;
+});
+$("nowSets").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-done]");
+  if (!b) return;
+  const i = Number(b.dataset.done);
+  live[idx].sets[i].done = !live[idx].sets[i].done;
+  renderNow();
+  if (live[idx].sets[i].done) startRest();
 });
 
 $("finish").addEventListener("click", () => {
+  live[idx].note = $("nowNote").value;
   addSession({ date: todayISO(), at: new Date().toISOString(), exercises: collectSession() });
   alert("Einheit gespeichert.");
 });
 $("quick").addEventListener("click", () => {
-  addSession({ date: todayISO(), at: new Date().toISOString(), quick: true });
+  addSession({ date: todayISO(), at: new Date().toISOString(), quick: true, note: $("nowNote").value });
   alert("Heute zählt.");
 });
 
@@ -181,9 +210,8 @@ $("bpSave").addEventListener("click", () => {
   save(K.bp, rows);
   $("bpSys").value = $("bpDia").value = $("bpPulse").value = $("bpNote").value = "";
   renderBpHist();
-  renderBpBanner();
+  renderBpChip();
 });
-
 $("export").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify({ sessions: load(K.sessions), bp: load(K.bp) }, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
@@ -199,9 +227,9 @@ function padLocal() {
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
-renderExercises();
+renderNow();
 padLocal();
 renderWeek();
 renderTrainHist();
 renderBpHist();
-renderBpBanner();
+renderBpChip();
