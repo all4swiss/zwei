@@ -6,7 +6,7 @@ const EX = [
   { id: 5, name: "Überzüge Maschine", cue: "Sitzhöhe 7. PDF stand 100 Wdh — Ist zählt, Soll hier 10.", sets: [{ reps: 10, kg: 45 }, { reps: 10, kg: 45 }] },
   { id: 6, name: "Außenrotation Kabelzug", cue: "", sets: [{ reps: 10, kg: 5 }] },
   { id: 7, name: "Langlauf", cue: "", sets: [{ reps: 10, kg: 10 }] },
-  { id: 8, name: "Shrugs Kurzhantel", cue: "kreisen 10 zurück, 5 vor, 10 zurück", sets: [{ reps: 10, kg: 3 }] },
+  { id: 8, name: "Shrugs Kurzhantel", cue: "kreisen 10 zurück, 5 vor, 10 zurück", sets: [{ reps: 25, kg: 3 }] },
   { id: 9, name: "Trizepsstrecken Kabelzug Kordel", cue: "Arme am Oberkörper", sets: [{ reps: 10, kg: 15 }, { reps: 10, kg: 15 }] },
   { id: 10, name: "Scottcurls SZ-Stange", cue: "", sets: [{ reps: 10, kg: 10 }, { reps: 10, kg: 10 }] },
   { id: 11, name: "Bauchpresse", cue: "1. Satz mit Beine, 2. ohne", sets: [{ reps: 20, kg: 25 }, { reps: 20, kg: 25 }, { reps: 20, kg: 25 }] },
