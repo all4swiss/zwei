@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1c1916">
+  <title>Zwei</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Zwei</h1>
+    <div class="week" id="week">0 / 2 diese Woche</div>
+  </header>
+  <div id="bpBanner" class="banner" hidden>
+    Blutdruck heute noch nicht gemessen.
+    <button class="btn small ghost" type="button" id="bpBannerBtn">Jetzt eintragen</button>
+  </div>
+  <section id="panel-train" class="panel on">
+    <p class="note">Einheit A · Ganzkörper Schulter · Pause 1 Minute. Ist zählt, nicht das PDF.</p>
+    <button class="btn" id="quick" type="button">Heute zählt</button>
+    <div id="exercises"></div>
+    <button class="btn" id="finish" type="button">Einheit speichern</button>
+    <h3>Letzte Einheiten</h3>
+    <div class="hist" id="trainHist"></div>
+  </section>
+  <section id="panel-bp" class="panel">
+    <div class="card">
+      <label class="f">Zeit</label>
+      <input class="f" id="bpWhen" type="datetime-local">
+      <div class="row">
+        <div><label class="f">Systolisch</label><input class="f" id="bpSys" inputmode="numeric" placeholder="z.B. 128"></div>
+        <div><label class="f">Diastolisch</label><input class="f" id="bpDia" inputmode="numeric" placeholder="z.B. 82"></div>
+      </div>
+      <label class="f">Puls</label>
+      <input class="f" id="bpPulse" inputmode="numeric" placeholder="optional">
+      <label class="f">Notiz</label>
+      <input class="f" id="bpNote" placeholder="optional">
+      <p class="note">Nur ein Log. Keine Bewertung, kein Arzt.</p>
+      <button class="btn" id="bpSave" type="button">Messung speichern</button>
+    </div>
+    <h3>Verlauf</h3>
+    <div class="hist" id="bpHist"></div>
+    <button class="btn ghost" id="export" type="button">JSON exportieren</button>
+  </section>
+  <nav>
+    <button type="button" class="on" data-tab="train">Training</button>
+    <button type="button" data-tab="bp">Blutdruck</button>
+  </nav>
+  <div class="timer" id="timer">
+    <div class="n" id="timerN">1:00</div>
+    <p id="timerMsg">Pause</p>
+    <button class="btn ghost" type="button" id="timerSkip">Überspringen</button>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
